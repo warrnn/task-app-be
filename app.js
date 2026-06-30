@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 // Middleware to fetch JSON data from client
 app.use(express.json());
 
-// Import the routes endpoint
+// Import routes endpoint
 app.use('/api', apiRouter);
 
 // Calling function from config to connecting DB
