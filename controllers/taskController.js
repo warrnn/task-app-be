@@ -43,3 +43,41 @@ export async function getTask(req, res) {
         });
     }
 }
+
+export async function updateTask(req, res) {
+    try {
+        const { taskId, title, description, startedAt, endAt } = req.body;
+
+        if (!title) {
+            return res.status(400).json({
+                message: "Title field is required"
+            });
+        }
+
+        const updatedTask = await Task.findByIdAndUpdate(
+            taskId,
+            {
+                $set: {
+                    title: title,
+                    description: description,
+                    startedAt: startedAt,
+                    endAt: endAt
+                }
+            },
+            {
+                returnDocument: 'after',
+                runValidators: true
+            }
+        );
+
+        return res.status(201).json({
+            message: "Task updated successfully",
+            task: updatedTask
+        });
+    } catch (err) {
+        console.error("Update task error:", err)
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
