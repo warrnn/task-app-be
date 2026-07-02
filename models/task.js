@@ -21,6 +21,11 @@ const taskSchema = new mongoose.Schema({
     endAt: {
         type: Date,
         required: false
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Task must belong to a user!']
     }
 }, {
     timestamps: true
