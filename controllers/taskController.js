@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Task from "../models/task.js";
 
 export async function createTask(req, res) {
@@ -46,7 +47,7 @@ export async function getTask(req, res) {
 
 export async function updateTask(req, res) {
     try {
-        const { taskId, title, description, startedAt, endAt } = req.body;
+        const { title, description, startedAt, endAt } = req.body;
 
         if (!title) {
             return res.status(400).json({
@@ -54,8 +55,11 @@ export async function updateTask(req, res) {
             });
         }
 
-        const updatedTask = await Task.findByIdAndUpdate(
-            taskId,
+        const taskId = req.params.id;
+        const userId = req.user._id;
+
+        const updatedTask = await Task.findOneAndUpdate(
+            { _id: taskId, userId: userId },
             {
                 $set: {
                     title: title,
@@ -76,6 +80,40 @@ export async function updateTask(req, res) {
         });
     } catch (err) {
         console.error("Update task error:", err)
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function deleteTask(req, res) {
+    try {
+        const taskId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).json({
+                message: "Invalid task ID format"
+            });
+        }
+
+        const userId = req.user._id;
+
+        const deletedTask = await Task.findOneAndDelete(
+            { _id: taskId, userId: userId }
+        );
+
+        if (!deletedTask) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "Task has been successfully deleted",
+            task: deletedTask
+        });
+    } catch (err) {
+        console.error("Delete task error:", err)
         return res.status(500).json({
             message: "Internal server error"
         });
