@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 import Task from "../models/task.js";
 
 export async function createTask(req, res) {
@@ -114,6 +114,51 @@ export async function deleteTask(req, res) {
         });
     } catch (err) {
         console.error("Delete task error:", err)
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
+}
+
+export async function toggleTaskCompletion(req, res) {
+    try {
+        const taskId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(taskId)) {
+            return res.status(400).json({
+                message: "Invalid task ID format"
+            });
+        }
+
+        const userId = req.user._id;
+
+        const task = await Task.findOne({ _id: taskId, userId: userId });
+
+        if (!task) {
+            return res.status(404).json({
+                message: "Task not found"
+            });
+        }
+
+        const markedTask = await Task.findOneAndUpdate(
+            { _id: taskId, userId: userId },
+            {
+                $set: {
+                    isDone: !task.isDone
+                }
+            },
+            {
+                returnDocument: 'after',
+                runValidators: true
+            }
+        );
+
+        return res.status(200).json({
+            message: `Task marked as ${markedTask.isDone ? 'completed' : 'incomplete'} successfully`,
+            task: markedTask
+        });
+    } catch (err) {
+        console.error("Toggle task completion error:", err)
         return res.status(500).json({
             message: "Internal server error"
         });
