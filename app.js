@@ -36,3 +36,6 @@ connectDB().then(() => {
         console.log(`Running on ${port}...`);
     });
 })
+
+// For Vercel
+export default app;
